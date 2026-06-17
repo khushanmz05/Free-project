@@ -14,7 +14,6 @@ class Player(pygame.sprite.Sprite):
         self.weapon  = make_pistol()
         self._shooting = False
 
-        # Set initial image
         self.image, self.rect = rotate_to_mouse(
             self.sprites["stand"], int(self.pos.x), int(self.pos.y))
 
@@ -55,7 +54,6 @@ class Player(pygame.sprite.Sprite):
                 else:       self.rect.top    = wall.rect.bottom
                 self.pos.y = self.rect.centery
 
-        # Clamp away from edges so rotated sprite never clips off screen
         W, H   = pygame.display.get_surface().get_size()
         margin = 60
         self.pos.x = max(margin, min(W - margin, self.pos.x))

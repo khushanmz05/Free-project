@@ -16,7 +16,6 @@ CHARACTER_FOLDERS = {
 
 POSES = ["stand", "gun", "hold", "machine", "reload", "silencer"]
 
-# Cache rotated surfaces to avoid recomputing every frame
 _rotation_cache = {}
 MAX_CACHE_SIZE  = 512
 

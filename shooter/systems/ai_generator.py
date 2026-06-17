@@ -12,7 +12,7 @@ import json
 import random
 from groq import Groq
 from dotenv import load_dotenv
-from settings import WIDTH, HEIGHT, WALL_THICKNESS
+from settings import WALL_THICKNESS, WIDTH, HEIGHT
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -82,9 +82,9 @@ def generate_level_layout(wave: int):
     try:
         import pygame
         screen = pygame.display.get_surface()
-        W, H = screen.get_size() if screen else (900, 600)
-        t = WALL_THICKNESS
-        style = STYLES[wave % len(STYLES)]
+        W, H   = screen.get_size() if screen else (900, 600)
+        t      = WALL_THICKNESS
+        style  = STYLES[wave % len(STYLES)]
 
         # Express coordinates as percentages of W and H for resolution independence
         prompt = f"""You are an expert level designer for a top-down arcade shooter.
@@ -144,3 +144,68 @@ RETURN: raw JSON array only. Zero explanation. Zero markdown."""
 def reset_story():
     global _story_history
     _story_history = []
+
+
+def generate_boss_layout():
+    """
+    Generate a simple open arena for the boss fight.
+    Just borders + 4-6 symmetrical cover pieces.
+    Falls back to a hardcoded layout if AI fails.
+    """
+    try:
+        import pygame
+        screen = pygame.display.get_surface()
+        W, H   = screen.get_size() if screen else (900, 600)
+        t      = WALL_THICKNESS
+
+        prompt = f"""You are a level designer for a top-down shooter boss fight.
+Arena: {W} x {H} pixels. Player spawns left side (~150, {H//2}). Boss spawns right side (~{W*3//4}, {H//2}).
+
+Generate a SIMPLE boss arena as a JSON array [[x, y, width, height], ...].
+
+MANDATORY BORDERS:
+[0, 0, {W}, {t}], [0, {H-t}, {W}, {t}], [0, 0, {t}, {H}], [{W-t}, 0, {t}, {H}]
+
+COVER RULES — keep it simple:
+- Add exactly 4 to 6 cover walls
+- Each cover wall: width and height between 40 and 100px
+- Place them symmetrically — 2 on left half, 2 on right half
+- Leave a WIDE open centre corridor for movement
+- No wall within 150px of centre ({W//2}, {H//2})
+- Keep x < 180 clear for player spawn
+- Keep x > {W-180} clear for boss spawn
+
+RETURN: raw JSON array only, no markdown, no explanation."""
+
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+        )
+        text  = response.choices[0].message.content.strip()
+        text  = text.replace("```json", "").replace("```", "").strip()
+        start = text.find("[")
+        end   = text.rfind("]") + 1
+        if start == -1 or end == 0:
+            raise ValueError("No JSON found")
+        layout_raw = json.loads(text[start:end])
+        layout     = [tuple(int(v) for v in wall) for wall in layout_raw]
+        print(f"[AI] Boss arena generated with {len(layout)} walls")
+        return layout
+
+    except Exception as e:
+        print(f"[AI] Boss layout failed: {e} — using default")
+        W, H = 900, 600
+        t    = WALL_THICKNESS
+        return [
+            (0,     0,     W, t),
+            (0,     H-t,   W, t),
+            (0,     0,     t, H),
+            (W-t,   0,     t, H),
+            (250,   150,   80, 60),
+            (250,   H-210, 80, 60),
+            (W-330, 150,   80, 60),
+            (W-330, H-210, 80, 60),
+            (W//2-40, H//2-120, 80, 60),
+            (W//2-40, H//2+60,  80, 60),
+        ]

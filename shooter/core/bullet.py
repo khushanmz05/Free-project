@@ -2,7 +2,6 @@ import pygame
 import math
 from settings import *
 
-# Pre-render bullet surfaces at startup for performance
 _BULLET_CACHE = {}
 
 def _get_bullet_surface(color, size):

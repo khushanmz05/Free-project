@@ -45,10 +45,6 @@ def _env(wave, attack=0.01, decay=0.1):
     return wave * env
 
 
-# ---------------------------------------------------------------------------
-# Individual sound generators
-# ---------------------------------------------------------------------------
-
 def _make_pistol():
     t    = np.linspace(0, 0.12, int(SAMPLE_RATE * 0.12), False)
     freq = np.linspace(800, 200, len(t))
@@ -124,10 +120,6 @@ def _make_boss_hit():
     wave += _sine(150, 0.10, 0.6)
     return _make_sound(_env(wave * 0.9, attack=0.001, decay=0.09))
 
-
-# ---------------------------------------------------------------------------
-# Sound manager
-# ---------------------------------------------------------------------------
 
 class SoundManager:
     def __init__(self):

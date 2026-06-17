@@ -32,12 +32,10 @@ def _scale_default_layout(W, H):
     """Default layout scaled to any resolution."""
     t = WALL_THICKNESS
     return [
-        # Borders
         (0,0,W,t),
         (0,H - t, W, t),
         (0,0,t,H),
         (W - t,0, t, H),
-        # Inner obstacles
         (W*0.16, H*0.25, 20, H*0.20),
         (W*0.16, H*0.25, W*0.13, 20),
         (W*0.78, H*0.25, 20, H*0.20),
